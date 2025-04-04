@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Đi Chợ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2E7D32;
+            --accent-color: #8BC34A;
+            --light-color: #F1F8E9;
+            --dark-color: #1B5E20;
+            --danger-color: #F44336;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--dark-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #D32F2F;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            font-weight: 500;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 50px;
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--danger-color);
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+            font-style: italic;
+        }
+        
+        .emoji {
+            font-size: 24px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #777;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="emoji">📦</span>Quản Lý Hàng Hóa</h1>
+        
+        <div class="header">
+            <button id="addRowBtn" class="btn"><i class="fas fa-plus"></i> Thêm Hàng</button>
+            <span id="totalItems">Tổng: 0 mặt hàng</span>
+        </div>
+        
+        <table id="inventoryTable">
+            <thead>
+                <tr>
+                    <th>Tên</th>
+                    <th>Tên Hàng Hóa</th>
+                    <th>Số Lượng</th>
+                    <th>Ghi Chú</th>
+                    <th>Xoá</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be added here dynamically -->
+                <tr class="empty-row">
+                    <td colspan="5" class="empty-message">Chưa có hàng hóa nào. Nhấn "Thêm Hàng" để bắt đầu!</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <footer>
+            <p>Ứng dụng Quản Lý Hàng Hóa | Made with <i class="fas fa-heart" style="color: var(--danger-color);"></i></p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addRowBtn = document.getElementById('addRowBtn');
+            const tableBody = document.querySelector('#inventoryTable tbody');
+            const totalItemsSpan = document.getElementById('totalItems');
+            
+            // Check if there's saved data in localStorage
+            let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [];
+            
+            // Function to update the table
+            function updateTable() {
+                tableBody.innerHTML = '';
+                
+                if (inventoryData.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr class="empty-row">
+                            <td colspan="5" class="empty-message">Chưa có hàng hóa nào. Nhấn "Thêm Hàng" để bắt đầu!</td>
+                        </tr>
+                    `;
+                } else {
+                    inventoryData.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><input type="text" value="${item.name}" data-index="${index}" data-field="name"></td>
+                            <td><input type="text" value="${item.product}" data-index="${index}" data-field="product"></td>
+                            <td><input type="number" value="${item.quantity}" data-index="${index}" data-field="quantity"></td>
+                            <td><textarea data-index="${index}" data-field="notes">${item.notes}</textarea></td>
+                            <td><button class="action-btn delete-btn" data-index="${index}"><i class="fas fa-trash-alt"></i></button></td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+                
+                // Update total items count
+                totalItemsSpan.textContent = `Tổng: ${inventoryData.length} mặt hàng`;
+                
+                // Add event listeners to all delete buttons
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        inventoryData.splice(index, 1);
+                        saveData();
+                        updateTable();
+                    });
+                });
+                
+                // Add event listeners to all input fields
+                document.querySelectorAll('input, textarea').forEach(input => {
+                    input.addEventListener('change', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        const field = this.getAttribute('data-field');
+                        inventoryData[index][field] = this.value;
+                        saveData();
+                    });
+                });
+            }
+            
+            // Function to save data to localStorage
+            function saveData() {
+                localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+            }
+            
+            // Add new row
+            addRowBtn.addEventListener('click', function() {
+                // Remove empty row if it exists
+                const emptyRow = document.querySelector('.empty-row');
+                if (emptyRow) {
+                    emptyRow.remove();
+                }
+                
+                // Add new item to data
+                inventoryData.push({
+                    name: '',
+                    product: '',
+                    quantity: 1,
+                    notes: ''
+                });
+                
+                saveData();
+                updateTable();
+                
+                // Scroll to bottom
+                window.scrollTo(0, document.body.scrollHeight);
+            });
+            
+            // Initialize the table
+            updateTable();
+        });
+    </script>
+</body>
+</html>
